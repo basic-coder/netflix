@@ -8,15 +8,28 @@ import { useSelector } from 'react-redux';
 import {Navigate} from 'react-router-dom';
 import {useDispatch} from 'react-redux';
 import { login, logout, selectUser } from './features/userSlice';
+import ProfilePage from './pages/profile/ProfilePage';
 
 function App() {
 
   const dispatch = useDispatch()
-  const user = useSelector(selectUser)
-  
-  const SecureRoute = ({ children, redirectTo }) => {
-    return !user ? <Navigate to={redirectTo} /> : children;
+  var user = useSelector(selectUser)
+
+  const SecureRoute = ({ children, redirectTo}) => {
+
+    if(user){
+      return !user ? <Navigate to={redirectTo} /> : children;
+    }
+      
+   
   }
+
+  useEffect(()=>{
+    if (user) {
+      let redirectTo="/login";
+      SecureRoute(redirectTo);
+    }
+  }, [user])
 
   useEffect(()=>{
     const unsubscribe = auth.onAuthStateChanged(userAuth =>{
@@ -26,11 +39,11 @@ function App() {
           email: userAuth.email
         }))
       }else{
-        dispatch(logout)
+        dispatch(logout())
       }
     })
     return unsubscribe;
-  },[])
+  },[dispatch])
 
   
   return (
@@ -40,6 +53,11 @@ function App() {
           <Route path='/' exact element={
           <SecureRoute redirectTo="/login">
           <HomePage />
+          </SecureRoute>
+          } />
+           <Route path='/profile' exact element={
+          <SecureRoute redirectTo="/login">
+          <ProfilePage />
           </SecureRoute>
           } />
           <Route path='/login' exact element={<LoginPage />} />
